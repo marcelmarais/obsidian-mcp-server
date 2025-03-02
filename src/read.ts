@@ -4,6 +4,7 @@ import { vaultPath } from "./index.js";
 import fs from "fs";
 import path from "path";
 import { z } from "zod";
+import { glob } from "glob";
 
 const getAllFilenamesTool: tool<{}> = {
   name: "getAllFilenames",
@@ -27,7 +28,9 @@ const getAllFilenamesTool: tool<{}> = {
       content: [
         {
           type: "text",
-          text: `Files in vault:\n${filenames.join("\n")}`,
+          text: `# All markdown files in vault (note: today's date is ${
+            new Date().toISOString().split("T")[0]
+          })\n\n${filenames.join("\n")}`,
         },
       ],
     };
@@ -38,26 +41,24 @@ export function getAllFilenames(
   dirPath: string,
   basePath: string = dirPath
 ): string[] {
-  let filenames: string[] = [];
+  // Ignore dot files/directories and get all files recursively
+  const files = glob.sync("**/*", {
+    cwd: dirPath,
+    nodir: true,
+    dot: false,
+  });
 
-  const items = fs.readdirSync(dirPath, { withFileTypes: true });
-
-  for (const item of items) {
-    if (item.name.startsWith(".")) {
-      continue;
-    }
-
-    const itemPath = path.join(dirPath, item.name);
-    const relativePath = path.relative(basePath, itemPath);
-
-    if (item.isDirectory()) {
-      filenames = filenames.concat(getAllFilenames(itemPath, basePath));
-    } else if (item.isFile()) {
-      filenames.push(relativePath);
-    }
-  }
-
-  return filenames;
+  // Get file stats and sort by modification time (most recent first)
+  return files
+    .map((file: string) => ({
+      path: file,
+      mtime: fs.statSync(path.join(dirPath, file)).mtime,
+    }))
+    .sort(
+      (a: { mtime: Date }, b: { mtime: Date }) =>
+        b.mtime.getTime() - a.mtime.getTime()
+    )
+    .map((file: { path: string }) => file.path);
 }
 
 export const readFiles: tool<{
