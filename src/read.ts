@@ -5,9 +5,10 @@ import fs from "fs";
 import path from "path";
 import { z } from "zod";
 
-export const getAllFilenamesTool: tool<{}> = {
+const getAllFilenamesTool: tool<{}> = {
   name: "getAllFilenames",
-  description: "Get a list of all filenames in the Obsidian vault recursively",
+  description:
+    "Get a list of all filenames in the Obsidian vault. Useful for retrieving their contents later. ",
   schema: {},
   handler: (args, extra: RequestHandlerExtra) => {
     if (!vaultPath) {
@@ -33,7 +34,7 @@ export const getAllFilenamesTool: tool<{}> = {
   },
 };
 
-function getAllFilenames(
+export function getAllFilenames(
   dirPath: string,
   basePath: string = dirPath
 ): string[] {
@@ -59,14 +60,14 @@ function getAllFilenames(
   return filenames;
 }
 
-export const readFilesByNameTool: tool<{
-  filenames: z.ZodString;
+export const readFiles: tool<{
+  filenames: z.ZodArray<z.ZodString>;
 }> = {
-  name: "readFilesByName",
+  name: "readMultipleFiles",
   description:
-    "Read the contents of specific files from the vault by their names",
+    "Retrieves the contents of specified files from the Obsidian vault. You can provide exact filenames (with or without path), partial filenames, or case-insensitive matches. The tool will search for files that match any of these criteria and return their contents. If a file isn't found, it will indicate that in the response. Each file's content is prefixed with '# File: filename' for clear identification. Use this tool when you need to read specific documents from the vault.",
   schema: {
-    filenames: z.string(),
+    filenames: z.array(z.string()),
   },
   handler: (args, extra: RequestHandlerExtra) => {
     if (!vaultPath) {
@@ -93,7 +94,7 @@ export const readFilesByNameTool: tool<{
       };
     }
 
-    const fileContents = readFilesByName(vaultPath, [filenames]);
+    const fileContents = readFilesByName(vaultPath, filenames);
 
     if (fileContents.length === 0) {
       return {
@@ -169,4 +170,4 @@ function readFilesByName(
   return results;
 }
 
-export const readTools = [getAllFilenamesTool, readFilesByNameTool];
+export const readTools = [getAllFilenamesTool, readFiles];

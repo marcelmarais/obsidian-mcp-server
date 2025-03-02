@@ -1,6 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { readTools } from "./read.js";
+import { writeTools } from "./write.js";
 
 export const server = new McpServer({
   name: "obsidian",
@@ -9,7 +10,7 @@ export const server = new McpServer({
 
 export let vaultPath: string | undefined = process.argv[2];
 
-readTools.forEach((tool) => {
+[...readTools, ...writeTools].forEach((tool) => {
   server.tool(tool.name, tool.description, tool.schema, tool.handler);
 });
 
