@@ -71,29 +71,7 @@ export const readFiles: tool<{
     filenames: z.array(z.string()),
   },
   handler: (args, extra: RequestHandlerExtra) => {
-    if (!vaultPath) {
-      return {
-        content: [
-          {
-            type: "text",
-            text: "Error: No vault path provided. Please specify a vault path when starting the server.",
-          },
-        ],
-      };
-    }
-
     const { filenames } = args;
-
-    if (!filenames || filenames.length === 0) {
-      return {
-        content: [
-          {
-            type: "text",
-            text: "Error: No filenames provided. Please provide at least one filename.",
-          },
-        ],
-      };
-    }
 
     const fileContents = readFilesByName(vaultPath, filenames);
 
@@ -124,51 +102,41 @@ function readFilesByName(
   targetFilenames: string[]
 ): string[] {
   const allFiles = getAllFilenames(rootPath);
-  const results: string[] = [];
 
   const fileMap = new Map<string, string>();
   allFiles.forEach((file) => {
     fileMap.set(file.toLowerCase(), file);
   });
 
-  for (const targetName of targetFilenames) {
-    let found = false;
+  const readAndFormatFile = (filePath: string): string => {
+    const content = fs.readFileSync(path.join(rootPath, filePath), "utf8");
+    return `# File: ${filePath}\n\n${content}`;
+  };
 
+  return targetFilenames.flatMap((targetName) => {
+    // 1. Try exact match
     if (allFiles.includes(targetName)) {
-      const content = fs.readFileSync(path.join(rootPath, targetName), "utf8");
-      results.push(`# File: ${targetName}\n\n${content}`);
-      found = true;
-    } else if (fileMap.has(targetName.toLowerCase())) {
-      const actualFilename = fileMap.get(targetName.toLowerCase())!;
-      const content = fs.readFileSync(
-        path.join(rootPath, actualFilename),
-        "utf8"
-      );
-      results.push(`# File: ${actualFilename}\n\n${content}`);
-      found = true;
-    } else {
-      const matchingFiles = allFiles.filter((file) =>
-        path.basename(file).toLowerCase().includes(targetName.toLowerCase())
-      );
-
-      if (matchingFiles.length > 0) {
-        for (const matchedFile of matchingFiles) {
-          const content = fs.readFileSync(
-            path.join(rootPath, matchedFile),
-            "utf8"
-          );
-          results.push(`# File: ${matchedFile}\n\n${content}`);
-          found = true;
-        }
-      }
+      return [readAndFormatFile(targetName)];
     }
 
-    if (!found) {
-      results.push(`# File: ${targetName}\n\nFile not found in vault.`);
+    // 2. Try case-insensitive match
+    const lowerTargetName = targetName.toLowerCase();
+    if (fileMap.has(lowerTargetName)) {
+      return [readAndFormatFile(fileMap.get(lowerTargetName)!)];
     }
-  }
 
-  return results;
+    // 3. Try partial filename match
+    const matchingFiles = allFiles.filter((file) =>
+      path.basename(file).toLowerCase().includes(lowerTargetName)
+    );
+
+    if (matchingFiles.length > 0) {
+      return matchingFiles.map(readAndFormatFile);
+    }
+
+    // 4. No matches found
+    return [`# File: ${targetName}\n\nFile not found in vault.`];
+  });
 }
 
 export const readTools = [getAllFilenamesTool, readFiles];

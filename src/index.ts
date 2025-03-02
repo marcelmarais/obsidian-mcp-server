@@ -9,15 +9,13 @@ export const server = new McpServer({
   version: "1.0.0",
 });
 
-export let vaultPath: string | undefined = process.argv[2];
+export let vaultPath: string = validateVaultPath(process.argv[2]);
 
 [...readTools, ...writeTools].forEach((tool) => {
   server.tool(tool.name, tool.description, tool.schema, tool.handler);
 });
 
 async function main() {
-  vaultPath = validateVaultPath(process.argv[2]);
-
   const transport = new StdioServerTransport();
   await server.connect(transport);
   console.log("Obsidian MCP Server running on stdio");
