@@ -2,6 +2,8 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { readTools } from "./read.js";
 import { writeTools } from "./write.js";
+import { existsSync } from "fs";
+import { validateVaultPath } from "./utils.js";
 
 export const server = new McpServer({
   name: "obsidian",
@@ -15,13 +17,12 @@ export let vaultPath: string | undefined = process.argv[2];
 });
 
 async function main() {
+  vaultPath = validateVaultPath(process.argv[2]);
+
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("Obsidian MCP Server running on stdio");
-
-  if (vaultPath) {
-    console.error(`Using file path: ${vaultPath}`);
-  }
+  console.log("Obsidian MCP Server running on stdio");
+  console.log(`Using vault path: ${vaultPath}`);
 }
 
 main().catch((error) => {
