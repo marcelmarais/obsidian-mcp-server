@@ -139,4 +139,74 @@ function readFilesByName(
   });
 }
 
-export const readTools = [getAllFilenamesTool, readFiles];
+export const getOpenTodos: tool<{}> = {
+  name: "getOpenTodos",
+  description:
+    "Retrieves all open TODO items in the Obsidian vault with their file locations. Useful for getting an overview of pending tasks.",
+  schema: {},
+  handler: (args, extra: RequestHandlerExtra) => {
+    if (!vaultPath) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: "Error: No vault path provided. Please specify a vault path when starting the server.",
+          },
+        ],
+      };
+    }
+
+    const todos = findOpenTodos(vaultPath);
+
+    if (todos.length === 0) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: "No open TODOs found in the vault.",
+          },
+        ],
+      };
+    }
+
+    return {
+      content: [
+        {
+          type: "text",
+          text: `# Open TODOs in vault (${todos.length} items)\n\n${todos.join(
+            "\n"
+          )}`,
+        },
+      ],
+    };
+  },
+};
+
+function findOpenTodos(rootPath: string): string[] {
+  const mdFiles = glob.sync("**/*.md", {
+    cwd: rootPath,
+    nodir: true,
+    dot: false,
+  });
+
+  const todoRegex = /- \[ \] .+/g;
+  const todos: string[] = [];
+
+  mdFiles.forEach((filePath) => {
+    const content = fs.readFileSync(path.join(rootPath, filePath), "utf8");
+    const lines = content.split("\n");
+
+    lines.forEach((line, index) => {
+      if (line.includes("- [ ]")) {
+        if (todoRegex.test(line)) {
+          todos.push(`- **${filePath}**: ${line.trim()}`);
+        }
+        todoRegex.lastIndex = 0;
+      }
+    });
+  });
+
+  return todos;
+}
+
+export const readTools = [getAllFilenamesTool, readFiles, getOpenTodos];
