@@ -5,7 +5,7 @@ import { writeTools } from "./write.js";
 import { validateVaultPath } from "./utils.js";
 
 export const server = new McpServer({
-  name: "obsidian",
+  name: "obsidian-notes",
   version: "1.0.0",
 });
 
@@ -18,8 +18,9 @@ export let vaultPath: string = validateVaultPath(process.argv[2]);
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.log("Obsidian MCP Server running on stdio");
-  console.log(`Using vault path: ${vaultPath}`);
+  console.log(
+    `Obsidian MCP Server running on stdio (using vault path: ${vaultPath})`
+  );
 }
 
 main().catch((error) => {
