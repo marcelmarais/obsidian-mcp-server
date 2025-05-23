@@ -1,0 +1,19 @@
+# Smithery configuration file: https://smithery.ai/docs/build/project-config
+
+startCommand:
+  type: stdio
+  commandFunction:
+    # A JS function that produces the CLI command based on the given config to start the MCP on stdio.
+    |-
+    (config) => ({ command: 'node', args: ['build/index.js', config.vaultPath], env: {} })
+  configSchema:
+    # JSON Schema defining the configuration options for the MCP.
+    type: object
+    required:
+      - vaultPath
+    properties:
+      vaultPath:
+        type: string
+        description: Path to your Obsidian vault
+  exampleConfig:
+    vaultPath: /vault
