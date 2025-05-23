@@ -1,4 +1,5 @@
 # Obsidian MCP Server
+[![smithery badge](https://smithery.ai/badge/@marcelmarais/obsidian-mcp-server)](https://smithery.ai/server/@marcelmarais/obsidian-mcp-server)
 
 A lightweight [Model Context Protocol (MCP)](https://modelcontextprotocol.io) server that enables AI assistants like Cursor & Claude to read from and write to your Obsidian vault.
 
@@ -36,6 +37,15 @@ A lightweight [Model Context Protocol (MCP)](https://modelcontextprotocol.io) se
 
 ## Install & build
 
+### Installing via Smithery
+
+To install Obsidian Vault Integration Server for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@marcelmarais/obsidian-mcp-server):
+
+```bash
+npx -y @smithery/cli install @marcelmarais/obsidian-mcp-server --client claude
+```
+
+### Manual Installation
 ```bash
 npm install obsidian-mcp-server
 npm run build
