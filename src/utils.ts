@@ -1,5 +1,9 @@
 import { existsSync } from "fs";
 
+export function toErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
 export const validateVaultPath = (path: string | undefined): string => {
   if (!path) {
     throw new Error(

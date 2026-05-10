@@ -7,7 +7,8 @@
     "obsidian": "./build/index.js"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest run",
+    "coverage": "vitest run --coverage",
     "build": "tsc && node -e \"require('fs').chmodSync('build/index.js', '755')\""
   },
   "files": [
@@ -21,10 +22,13 @@
     "@modelcontextprotocol/sdk": "^1.6.1",
     "@types/glob": "^8.1.0",
     "glob": "^11.0.1",
+    "obsidian-mcp-server": "^2.0.7",
     "zod": "^3.24.2"
   },
   "devDependencies": {
     "@types/node": "^22.13.8",
-    "typescript": "^5.8.2"
+    "@vitest/coverage-v8": "^4.1.5",
+    "typescript": "^5.8.2",
+    "vitest": "^4.1.5"
   }
 }

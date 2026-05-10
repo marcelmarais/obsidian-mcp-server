@@ -1,26 +1,33 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { readTools } from "./read.js";
-import { writeTools } from "./write.js";
 import { validateVaultPath } from "./utils.js";
+import { createReadTools } from "./read.js";
+import { createWriteTools } from "./write.js";
+import { createSearchTools } from "./search.js";
+import { createManageTools } from "./manage.js";
 
-export const server = new McpServer({
+const vaultPath = validateVaultPath(process.argv[2]);
+
+const server = new McpServer({
   name: "obsidian-notes",
   version: "1.0.0",
 });
 
-export let vaultPath: string = validateVaultPath(process.argv[2]);
+const tools = [
+  ...createReadTools(vaultPath),
+  ...createWriteTools(vaultPath),
+  ...createSearchTools(vaultPath),
+  ...createManageTools(vaultPath),
+];
 
-[...readTools, ...writeTools].forEach((tool) => {
+tools.forEach((tool) => {
   server.tool(tool.name, tool.description, tool.schema, tool.handler);
 });
 
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.log(
-    `Obsidian MCP Server running on stdio (using vault path: ${vaultPath})`
-  );
+  console.error(`Obsidian MCP Server running on stdio (vault: ${vaultPath})`);
 }
 
 main().catch((error) => {
